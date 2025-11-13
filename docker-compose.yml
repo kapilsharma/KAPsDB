@@ -1,0 +1,98 @@
+services:
+  mysql_dev:
+    image: mysql:8.0
+    container_name: local_mysql_dev
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: mysecretpassword
+      MYSQL_DATABASE: my_phpstorm_db
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: local_phpmyadmin
+    depends_on:
+      - mysql_dev
+    ports:
+      - "8082:80"
+    environment:
+      PMA_HOST: mysql_dev
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: mysecretpassword
+      UPLOAD_LIMIT: 64M
+
+  postgres_dev:
+    image: postgres:15
+    container_name: local_postgres_dev
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_USER: myuser
+      POSTGRES_DB: my_datagrip_db
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+
+  phppgadmin:
+    image: dockage/phppgadmin:latest
+    container_name: local_phppgadmin
+    depends_on:
+      - postgres_dev
+    ports:
+      - "8083:80"
+    environment:
+      PHP_PG_ADMIN_SERVER_HOST: postgres_dev
+      PHP_PG_ADMIN_SERVER_PORT: 5432
+      PHP_PG_ADMIN_DEFAULT_LANG: en
+      PHP_PG_ADMIN_SERVER_DESC: "Local PostgreSQL"
+      PHP_PG_ADMIN_USER: myuser
+      PHP_PG_ADMIN_PASSWORD: mysecretpassword
+  
+  mongo_dev:
+    image: mongo:7
+    container_name: local_mongo_dev
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: myuser
+      MONGO_INITDB_ROOT_PASSWORD: mysecretpassword
+    volumes:
+      - ./data/mongo:/data/db
+
+  mongo_express:
+    image: mongo-express:1.0.2
+    container_name: local_mongo_express
+    depends_on:
+      - mongo_dev
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: myuser
+      ME_CONFIG_MONGODB_ADMINPASSWORD: mysecretpassword
+      ME_CONFIG_MONGODB_SERVER: mongo_dev
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: password
+      # url: localhost:8081, user: admin, passwod: password
+
+  dynamodb-local:
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./data/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+  
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin
+    container_name: dynamodb-admin
+    depends_on:
+      - dynamodb-local
+    ports:
+      - "8001:8001"
+    environment:
+      DYNAMO_ENDPOINT: http://dynamodb-local:8000

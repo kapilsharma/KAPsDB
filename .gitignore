@@ -1,0 +1,77 @@
+# ========================================
+# OS & Environment
+# ========================================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.log
+
+# ========================================
+# Docker & Data
+# ========================================
+# Ignore all DB data contents but keep the folder structure
+/data/*
+!/data/.gitkeep
+
+# If you have separate DB folders
+/data/mysql/*
+!/data/mysql/.gitkeep
+/data/postgres/*
+!/data/postgres/.gitkeep
+/data/mongo/*
+!/data/mongo/.gitkeep
+/data/dynamodb/*
+!/data/dynamodb/.gitkeep
+
+# ========================================
+# Local IDE and Tools
+# ========================================
+# DataGrip project files
+datagrip/
+/datagrip/*
+
+# Herd (if you use Herd or HerdDB)
+HerdDBs/
+/HerdDBs/*
+
+# Composer, node, cache, temp files
+vendor/
+node_modules/
+npm-debug.log
+.env
+.env.local
+.env.*.local
+*.sqlite
+*.sqlite3
+*.db
+*.pid
+*.seed
+
+# ========================================
+# Logs and temporary build outputs
+# ========================================
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+bootstrap/cache/
+
+# ========================================
+# Backup files and generated artifacts
+# ========================================
+*.bak
+*.old
+*.orig
+*.tmp
+*.zip
+*.tar.gz
+*.tgz
+
+# ========================================
+# JetBrains IDEs
+# ========================================
+.idea/
+*.iml
+out/

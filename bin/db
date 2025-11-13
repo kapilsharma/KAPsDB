@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# db.sh — Cross-platform Docker Compose DB manager
+# Works on macOS, Linux, and Windows (via WSL or Git Bash)
+
+set -e
+
+COMPOSE_FILE="docker-compose.yml"
+
+if [ ! -f "$COMPOSE_FILE" ]; then
+  echo "❌ Error: docker-compose.yml not found in $(pwd)"
+  exit 1
+fi
+
+# Supported services — update if you add more
+VALID_SERVICES=("mysql_dev" "phpmyadmin" "postgres_dev" "phppgadmin" "mongo_dev" "mongo_express" "dynamodb-local" "dynamodb-admin")
+
+show_help() {
+  echo "Usage: ./db.sh [command] [service_name]"
+  echo
+  echo "Commands:"
+  echo "  start [service]     Start a specific service or all if omitted"
+  echo "  stop [service]      Stop a specific service or all if omitted"
+  echo "  restart [service]   Restart a specific service or all if omitted"
+  echo "  logs [service]      View logs for a specific service"
+  echo "  status              Show running containers"
+  echo "  stopall             Stop all running containers (even outside this compose file)"
+  echo "  clean               Stop and remove all containers + volumes (⚠️ data loss)"
+  echo
+  echo "Examples:"
+  echo "  ./db.sh start mysql_dev"
+  echo "  ./db.sh logs mongo_dev"
+  echo "  ./db.sh clean"
+  echo
+  echo "Available services:"
+  for s in "${VALID_SERVICES[@]}"; do echo "  - $s"; done
+}
+
+# Detect docker-compose or docker compose
+if command -v docker-compose >/dev/null 2>&1; then
+  DC="docker-compose"
+elif docker compose version >/dev/null 2>&1; then
+  DC="docker compose"
+else
+  echo "❌ Docker Compose not found. Please install Docker Desktop or Docker Compose CLI."
+  exit 1
+fi
+
+ACTION="$1"
+SERVICE="$2"
+
+if [ -z "$ACTION" ]; then
+  show_help
+  exit 0
+fi
+
+case "$ACTION" in
+  start)
+    if [ -z "$SERVICE" ]; then
+      echo "⚡ Starting all services..."
+      $DC up -d
+    else
+      echo "⚡ Starting $SERVICE..."
+      $DC up -d "$SERVICE"
+    fi
+    ;;
+  stop)
+    if [ -z "$SERVICE" ]; then
+      echo "🛑 Stopping all services..."
+      $DC stop
+    else
+      echo "🛑 Stopping $SERVICE..."
+      $DC stop "$SERVICE"
+    fi
+    ;;
+  restart)
+    if [ -z "$SERVICE" ]; then
+      echo "🔁 Restarting all services..."
+      $DC restart
+    else
+      echo "🔁 Restarting $SERVICE..."
+      $DC restart "$SERVICE"
+    fi
+    ;;
+  logs)
+    if [ -z "$SERVICE" ]; then
+      echo "📜 Please specify a service name for logs."
+      show_help
+      exit 1
+    fi
+    echo "📜 Showing logs for $SERVICE (Ctrl+C to exit)..."
+    $DC logs -f "$SERVICE"
+    ;;
+  stopall)
+    echo "🛑 Stopping all running Docker containers..."
+    docker ps -q | xargs -r docker stop
+    ;;
+  clean)
+    echo "🧹 Stopping and removing all containers and volumes (⚠️ data loss)..."
+    $DC down -v
+    ;;
+  status)
+    echo "📊 Docker container status:"
+    $DC ps
+    ;;
+  *)
+    show_help
+    ;;
+esac
