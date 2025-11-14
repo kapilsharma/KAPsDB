@@ -33,7 +33,7 @@ Clone the repo and make the script executable:
 
 ```bash
 git clone https://github.com/kapilsharma/KAPsDB.git
-cd DB
+cd KAPsDB
 chmod +x bin/db
 ```
 
